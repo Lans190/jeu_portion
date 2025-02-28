@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu du Morpion - Joueur vs Machine</title>
+    <style>
+        /* Styles globaux */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f4f4f9, #e0e0e0);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        /* Conteneur principal */
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        /* Titres */
+        h1 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 1.2em;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        /* Formulaire */
+        #setup-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        label {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+            background-color: #f9f9f9;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #ff8c42;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #e67e22;
+        }
+
+        /* Conteneur du jeu */
+        #game-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Informations du jeu */
+        #game-info {
+            text-align: center;
+        }
+
+        #game-info p {
+            font-size: 1.1em;
+            color: #555;
+            margin: 5px 0;
+        }
+
+        /* Grille de jeu */
+        #game-board {
+            display: grid;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .cell {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #87CEEB;
+            border: 2px solid #ff8c42;
+            border-radius: 10px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .cell:hover {
+            background-color: #e0e0e0;
+        }
+
+        .cell[data-player="P"] {
+            background-color: #ff8c42;
+            color: white;
+        }
+
+        .cell[data-player="M"] {
+            background-color: #333;
+            color: white;
+        }
+
+        /* Section de fin de jeu */
+        #end-game {
+            display: none;
+            text-align: center;
+        }
+
+        #end-game h2 {
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        #end-game p {
+            font-size: 1.1em;
+            color: #333;
+            margin: 5px 0;
+        }
+
+        #restart-button {
+            margin-top: 20px;
+            background-color: #ff8c42;
+            width: 100%;
+        }
+
+        #restart-button:hover {
+            background-color: #e67e22;
+        }
+    </style>
+</head>
+<body>
+    <!-- Conteneur principal -->
+    <div class="container">
+        <!-- Formulaire de paramètres -->
+        <form id="setup-form">
+            <h1>Paramètres du Jeu</h1>
+            <div class="form-group">
+                <label for="player1">Joueur 1 :</label>
+                <input type="text" id="player1" placeholder="Votre nom" required>
+            </div>
+            <div class="form-group">
+                <label for="grid-size">Dimension de la grille :</label>
+                <input type="number" id="grid-size" min="3" max="3" value="3" required>
+            </div>
+            <button type="submit">Commencer le jeu</button>
+        </form>
+
+        <!-- Conteneur du jeu -->
+        <div id="game-container">
+            <h1>Jeu en cours</h1>
+            <div id="game-info">
+                <p id="player-info"></p>
+                <p id="grid-info"></p>
+            </div>
+            <div id="game-board"></div>
+            <div id="turn-info">
+                <p id="current-turn"></p>
+                <p id="turn-count">Nombre de tours effectués : 0</p>
+            </div>
+            <button id="restart-button">Valider</button>
+
+            <!-- Fin du jeu -->
+            <div id="end-game">
+                <h2>Résumé de la partie</h2>
+                <p id="winner-info"></p>
+                <p><strong>Nombre total de tours :</strong> <span id="total-turns"></span></p>
+                <button onclick="restartGame()">Recommencer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
