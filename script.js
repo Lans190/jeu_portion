@@ -1,7 +1,6 @@
-// script.js
-
 let player1, player2, gridSize, currentPlayer, board, turnCount;
 
+// Écouteur pour le formulaire de configuration
 document.getElementById('setup-form').addEventListener('submit', function (e) {
     e.preventDefault();
 
@@ -21,7 +20,7 @@ function initializeGame() {
 
     // Masquer le formulaire et afficher le jeu
     document.getElementById('setup-form').style.display = 'none';
-    document.getElementById('game-container').style.display = 'flex';
+    document.getElementById('game-container').style.display = 'block';
 
     // Mettre à jour les informations du jeu
     document.getElementById('player-info').textContent = `Joueur 1 : ${player1} | Joueur 2 : ${player2}`;
@@ -35,7 +34,7 @@ function initializeGame() {
 function generateBoard() {
     const gameBoard = document.getElementById('game-board');
     gameBoard.innerHTML = ''; // Vider la grille existante
-    gameBoard.style.gridTemplateColumns = `repeat(${gridSize}, 60px)`; // Ajuster la taille de la grille
+    gameBoard.style.gridTemplateColumns = `repeat(${gridSize}, 70px)`; // Ajuster la taille de la grille
 
     for (let i = 0; i < gridSize * gridSize; i++) {
         const cell = document.createElement('div');
@@ -55,7 +54,8 @@ function handleCellClick(e) {
 
     // Jouer le coup du joueur
     board[index] = 'P'; // Le joueur utilise 'P'
-    cell.textContent = 'P';
+    cell.textContent = 'X';
+    cell.setAttribute('data-player', 'P'); // Marquer la cellule comme jouée par le joueur
     cell.style.pointerEvents = 'none'; // Désactiver les clics sur cette cellule
     turnCount++;
 
@@ -84,7 +84,8 @@ function machinePlay() {
     // Jouer le coup de la machine
     board[bestMove] = 'M'; // La machine utilise 'M'
     const cell = document.querySelector(`.cell[data-index="${bestMove}"]`);
-    cell.textContent = 'M';
+    cell.textContent = 'O';
+    cell.setAttribute('data-player', 'M'); // Marquer la cellule comme jouée par la machine
     cell.style.pointerEvents = 'none'; // Désactiver les clics sur cette cellule
     turnCount++;
 
@@ -169,11 +170,24 @@ function endGame(message) {
     document.getElementById('total-turns').textContent = turnCount;
     document.getElementById('end-game').style.display = 'block';
     document.getElementById('game-board').style.pointerEvents = 'none'; // Désactiver la grille
+
+    // Ajouter un écouteur pour rejouer
+    document.getElementById('restart-button').addEventListener('click', restartGame);
 }
 
 function restartGame() {
-    document.getElementById('setup-form').style.display = 'block';
-    document.getElementById('game-container').style.display = 'none';
+    // Réinitialiser toutes les variables globales
+    currentPlayer = player1;
+    turnCount = 0;
+    board = Array(gridSize * gridSize).fill(null);
+
+    // Réinitialiser la grille
+    const gameBoard = document.getElementById('game-board');
+    gameBoard.innerHTML = '';
+    generateBoard();
+
+    // Remettre à jour les informations du jeu
+    document.getElementById('current-turn').textContent = `Tour de : ${currentPlayer}`;
     document.getElementById('end-game').style.display = 'none';
-    document.getElementById('setup-form').reset();
+    document.getElementById('game-board').style.pointerEvents = 'auto'; // Réactiver la grille
 }

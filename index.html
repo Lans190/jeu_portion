@@ -170,44 +170,40 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Conteneur principal -->
     <div class="container">
         <!-- Formulaire de paramètres -->
-        <form id="setup-form">
+        <div id="setup-form">
             <h1>Paramètres du Jeu</h1>
-            <div class="form-group">
-                <label for="player1">Joueur 1 :</label>
-                <input type="text" id="player1" placeholder="Votre nom" required>
-            </div>
-            <div class="form-group">
-                <label for="grid-size">Dimension de la grille :</label>
-                <input type="number" id="grid-size" min="3" max="3" value="3" required>
-            </div>
-            <button type="submit">Commencer le jeu</button>
-        </form>
+            <form>
+                <div class="form-group">
+                    <label for="player1">Joueur 1 :</label>
+                    <input type="text" id="player1" placeholder="Votre nom" required>
+                </div>
+                <div class="form-group">
+                    <label for="grid-size">Dimension de la grille :</label>
+                    <input type="number" id="grid-size" min="3" max="10" value="3" required>
+                </div>
+                <button type="submit">Commencer le jeu</button>
+            </form>
+        </div>
 
         <!-- Conteneur du jeu -->
-        <div id="game-container">
-            <h1>Jeu en cours</h1>
-            <div id="game-info">
-                <p id="player-info"></p>
-                <p id="grid-info"></p>
-            </div>
-            <div id="game-board"></div>
-            <div id="turn-info">
-                <p id="current-turn"></p>
-                <p id="turn-count">Nombre de tours effectués : 0</p>
-            </div>
-            <button id="restart-button">Valider</button>
+        <div id="game-container" style="display: none;">
+            <h2>Tic Tac Toe</h2>
+            <p id="player-info"></p>
+            <p id="grid-info"></p>
+            <p id="current-turn"></p>
+            <div id="game-board" style="display: grid;"></div>
+        </div>
 
-            <!-- Fin du jeu -->
-            <div id="end-game">
-                <h2>Résumé de la partie</h2>
-                <p id="winner-info"></p>
-                <p><strong>Nombre total de tours :</strong> <span id="total-turns"></span></p>
-                <button onclick="restartGame()">Recommencer</button>
-            </div>
+        <!-- Section de fin de jeu -->
+        <div id="end-game" style="display: none;">
+            <h2 id="winner-info"></h2>
+            <p>Total de tours : <span id="total-turns"></span></p>
+            <button id="restart-button">Rejouer</button>
         </div>
     </div>
 
