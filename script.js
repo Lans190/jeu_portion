@@ -1,193 +1,265 @@
-let player1, player2, gridSize, currentPlayer, board, turnCount;
-
-// Écouteur pour le formulaire de configuration
-document.getElementById('setup-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    // Récupérer les valeurs du formulaire
-    player1 = document.getElementById('player1').value;
-    player2 = "Machine"; // La machine est le deuxième joueur
-    gridSize = parseInt(document.getElementById('grid-size').value);
-
-    // Initialiser le jeu
-    initializeGame();
-});
-
-function initializeGame() {
-    currentPlayer = player1; // Le joueur commence toujours
-    turnCount = 0;
-    board = Array(gridSize * gridSize).fill(null); // Tableau pour représenter la grille
-
-    // Masquer le formulaire et afficher le jeu
-    document.getElementById('setup-form').style.display = 'none';
-    document.getElementById('game-container').style.display = 'block';
-
-    // Mettre à jour les informations du jeu
-    document.getElementById('player-info').textContent = `Joueur 1 : ${player1} | Joueur 2 : ${player2}`;
-    document.getElementById('grid-info').textContent = `Dimension : ${gridSize}x${gridSize}`;
-    document.getElementById('current-turn').textContent = `Tour de : ${currentPlayer}`;
-
-    // Générer la grille de jeu
-    generateBoard();
-}
-
-function generateBoard() {
+document.addEventListener('DOMContentLoaded', function() {
+    const setupForm = document.getElementById('setup-form');
+    const gameContainer = document.getElementById('game-container');
     const gameBoard = document.getElementById('game-board');
-    gameBoard.innerHTML = ''; // Vider la grille existante
-    gameBoard.style.gridTemplateColumns = `repeat(${gridSize}, 70px)`; // Ajuster la taille de la grille
+    const playerInfo = document.getElementById('player-info');
+    const currentTurn = document.getElementById('current-turn');
+    const endGame = document.getElementById('end-game');
+    const winnerInfo = document.getElementById('winner-info');
+    const totalTurns = document.getElementById('total-turns');
+    const restartButton = document.getElementById('restart-button');
+    const changeDifficultyButton = document.getElementById('change-difficulty');
 
-    for (let i = 0; i < gridSize * gridSize; i++) {
-        const cell = document.createElement('div');
-        cell.classList.add('cell');
-        cell.dataset.index = i; // Stocker l'index de la cellule
-        cell.addEventListener('click', handleCellClick);
-        gameBoard.appendChild(cell);
-    }
-}
+    let player1, difficulty, currentPlayer, board, turnCount;
 
-function handleCellClick(e) {
-    const cell = e.target;
-    const index = cell.dataset.index;
+    setupForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        player1 = document.getElementById('player1').value;
+        difficulty = document.getElementById('difficulty').value;
 
-    // Vérifier si la cellule est déjà occupée
-    if (board[index] !== null) return;
-
-    // Jouer le coup du joueur
-    board[index] = 'P'; // Le joueur utilise 'P'
-    cell.textContent = 'X';
-    cell.setAttribute('data-player', 'P'); // Marquer la cellule comme jouée par le joueur
-    cell.style.pointerEvents = 'none'; // Désactiver les clics sur cette cellule
-    turnCount++;
-
-    // Vérifier si le joueur a gagné
-    if (checkWin('P')) {
-        endGame(`${player1} a gagné !`);
-        return;
-    }
-
-    // Vérifier s'il y a un match nul
-    if (turnCount === gridSize * gridSize) {
-        endGame('Match nul !');
-        return;
-    }
-
-    // Passer au tour de la machine
-    currentPlayer = player2;
-    document.getElementById('current-turn').textContent = `Tour de : ${currentPlayer}`;
-    setTimeout(machinePlay, 500); // La machine joue après un délai de 500ms
-}
-
-function machinePlay() {
-    // Trouver le meilleur coup pour la machine
-    const bestMove = findBestMove();
-
-    // Jouer le coup de la machine
-    board[bestMove] = 'M'; // La machine utilise 'M'
-    const cell = document.querySelector(`.cell[data-index="${bestMove}"]`);
-    cell.textContent = 'O';
-    cell.setAttribute('data-player', 'M'); // Marquer la cellule comme jouée par la machine
-    cell.style.pointerEvents = 'none'; // Désactiver les clics sur cette cellule
-    turnCount++;
-
-    // Vérifier si la machine a gagné
-    if (checkWin('M')) {
-        endGame(`${player2} a gagné !`);
-        return;
-    }
-
-    // Vérifier s'il y a un match nul
-    if (turnCount === gridSize * gridSize) {
-        endGame('Match nul !');
-        return;
-    }
-
-    // Revenir au tour du joueur
-    currentPlayer = player1;
-    document.getElementById('current-turn').textContent = `Tour de : ${currentPlayer}`;
-}
-
-function findBestMove() {
-    // Priorité 1 : La machine gagne si possible
-    for (let i = 0; i < board.length; i++) {
-        if (board[i] === null) {
-            board[i] = 'M';
-            if (checkWin('M')) {
-                board[i] = null; // Annuler le coup
-                return i;
-            }
-            board[i] = null;
-        }
-    }
-
-    // Priorité 2 : Bloquer le joueur s'il est sur le point de gagner
-    for (let i = 0; i < board.length; i++) {
-        if (board[i] === null) {
-            board[i] = 'P';
-            if (checkWin('P')) {
-                board[i] = null; // Annuler le coup
-                return i;
-            }
-            board[i] = null;
-        }
-    }
-
-    // Priorité 3 : Choisir une cellule vide au hasard
-    const emptyCells = board.map((value, index) => value === null ? index : null).filter(val => val !== null);
-    return emptyCells[Math.floor(Math.random() * emptyCells.length)];
-}
-
-function checkWin(symbol) {
-    // Vérifier les lignes, colonnes et diagonales pour une victoire
-    const winningCombinations = getWinningCombinations();
-
-    return winningCombinations.some(combination => {
-        return combination.every(index => board[index] === symbol);
+        setupForm.style.display = 'none';
+        gameContainer.style.display = 'flex';
+        initializeGame();
     });
-}
 
-function getWinningCombinations() {
-    const combinations = [];
+    changeDifficultyButton.addEventListener('click', function() {
+        setupForm.style.display = 'block';
+        gameContainer.style.display = 'none';
+        endGame.style.display = 'none';
+    });
 
-    // Lignes
-    for (let i = 0; i < gridSize; i++) {
-        combinations.push(Array.from({ length: gridSize }, (_, j) => i * gridSize + j));
+    restartButton.addEventListener('click', function() {
+        endGame.style.display = 'none';
+        gameContainer.style.display = 'flex';
+        initializeGame();
+    });
+
+    function initializeGame() {
+        currentPlayer = 'P';
+        turnCount = 0;
+        board = Array.from({ length: 3 }, () => Array(3).fill(null));
+        renderBoard();
+        updateGameInfo();
     }
 
-    // Colonnes
-    for (let i = 0; i < gridSize; i++) {
-        combinations.push(Array.from({ length: gridSize }, (_, j) => j * gridSize + i));
+    function renderBoard() {
+        gameBoard.innerHTML = '';
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.dataset.row = i;
+                cell.dataset.col = j;
+                cell.addEventListener('click', handleCellClick);
+                gameBoard.appendChild(cell);
+            }
+        }
     }
 
-    // Diagonales
-    combinations.push(Array.from({ length: gridSize }, (_, i) => i * gridSize + i));
-    combinations.push(Array.from({ length: gridSize }, (_, i) => i * gridSize + (gridSize - 1 - i)));
+    function handleCellClick(event) {
+        const row = parseInt(event.target.dataset.row);
+        const col = parseInt(event.target.dataset.col);
 
-    return combinations;
-}
+        if (board[row][col] === null) {
+            board[row][col] = currentPlayer;
+            event.target.textContent = currentPlayer;
+            event.target.dataset.player = currentPlayer;
+            turnCount++;
 
-function endGame(message) {
-    document.getElementById('winner-info').textContent = message;
-    document.getElementById('total-turns').textContent = turnCount;
-    document.getElementById('end-game').style.display = 'block';
-    document.getElementById('game-board').style.pointerEvents = 'none'; // Désactiver la grille
+            if (checkWin(currentPlayer)) {
+                endGame.style.display = 'block';
+                winnerInfo.textContent = `${currentPlayer === 'P' ? player1 : 'Machine'} a gagné !`;
+                totalTurns.textContent = turnCount;
+                return;
+            }
 
-    // Ajouter un écouteur pour rejouer
-    document.getElementById('restart-button').addEventListener('click', restartGame);
-}
+            if (turnCount === 9) {
+                endGame.style.display = 'block';
+                winnerInfo.textContent = 'Match nul !';
+                totalTurns.textContent = turnCount;
+                return;
+            }
 
-function restartGame() {
-    // Réinitialiser toutes les variables globales
-    currentPlayer = player1;
-    turnCount = 0;
-    board = Array(gridSize * gridSize).fill(null);
+            currentPlayer = currentPlayer === 'P' ? 'M' : 'P';
+            updateGameInfo();
 
-    // Réinitialiser la grille
-    const gameBoard = document.getElementById('game-board');
-    gameBoard.innerHTML = '';
-    generateBoard();
+            if (currentPlayer === 'M') {
+                setTimeout(machineMove, 500);
+            }
+        }
+    }
 
-    // Remettre à jour les informations du jeu
-    document.getElementById('current-turn').textContent = `Tour de : ${currentPlayer}`;
-    document.getElementById('end-game').style.display = 'none';
-    document.getElementById('game-board').style.pointerEvents = 'auto'; // Réactiver la grille
-}
+    function machineMove() {
+        let move;
+        if (difficulty === 'easy') {
+            move = getRandomMove();
+        } else if (difficulty === 'medium') {
+            move = getMediumMove();
+        } else {
+            move = getHardMove();
+        }
+
+        if (move) {
+            const [row, col] = move;
+            board[row][col] = 'M';
+            const cell = document.querySelector(`.cell[data-row='${row}'][data-col='${col}']`);
+            cell.textContent = 'M';
+            cell.dataset.player = 'M';
+            turnCount++;
+
+            if (checkWin('M')) {
+                endGame.style.display = 'block';
+                winnerInfo.textContent = 'Machine a gagné !';
+                totalTurns.textContent = turnCount;
+                return;
+            }
+
+            if (turnCount === 9) {
+                endGame.style.display = 'block';
+                winnerInfo.textContent = 'Match nul !';
+                totalTurns.textContent = turnCount;
+                return;
+            }
+
+            currentPlayer = 'P';
+            updateGameInfo();
+        }
+    }
+
+    function getRandomMove() {
+        const availableMoves = [];
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                if (board[i][j] === null) {
+                    availableMoves.push([i, j]);
+                }
+            }
+        }
+        return availableMoves.length > 0 ? availableMoves[Math.floor(Math.random() * availableMoves.length)] : null;
+    }
+
+    function getMediumMove() {
+        // Priorité 1: Gagner si possible
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                if (board[i][j] === null) {
+                    board[i][j] = 'M';
+                    if (checkWin('M')) {
+                        board[i][j] = null;
+                        return [i, j];
+                    }
+                    board[i][j] = null;
+                }
+            }
+        }
+
+        // Priorité 2: Bloquer le joueur seulement dans 50% des cas
+        if (Math.random() < 0.5) {
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (board[i][j] === null) {
+                        board[i][j] = 'P';
+                        if (checkWin('P')) {
+                            board[i][j] = null;
+                            return [i, j];
+                        }
+                        board[i][j] = null;
+                    }
+                }
+            }
+        }
+
+        // Sinon, mouvement aléatoire
+        return getRandomMove();
+    }
+
+    function getHardMove() {
+        let bestMove = null;
+        let bestScore = -Infinity;
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                if (board[i][j] === null) {
+                    board[i][j] = 'M';
+                    turnCount++;
+                    const score = minimax(board, 0, false);
+                    board[i][j] = null;
+                    turnCount--;
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMove = [i, j];
+                    }
+                }
+            }
+        }
+        return bestMove;
+    }
+
+    function minimax(board, depth, isMaximizing) {
+        if (checkWin('M')) return 10 - depth;
+        if (checkWin('P')) return depth - 10;
+        if (turnCount === 9) return 0;
+
+        if (isMaximizing) {
+            let bestScore = -Infinity;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (board[i][j] === null) {
+                        board[i][j] = 'M';
+                        turnCount++;
+                        const score = minimax(board, depth + 1, false);
+                        board[i][j] = null;
+                        turnCount--;
+                        bestScore = Math.max(score, bestScore);
+                    }
+                }
+            }
+            return bestScore;
+        } else {
+            let bestScore = Infinity;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (board[i][j] === null) {
+                        board[i][j] = 'P';
+                        turnCount++;
+                        const score = minimax(board, depth + 1, true);
+                        board[i][j] = null;
+                        turnCount--;
+                        bestScore = Math.min(score, bestScore);
+                    }
+                }
+            }
+            return bestScore;
+        }
+    }
+
+    function checkWin(player) {
+        // Vérifiez les lignes
+        for (let i = 0; i < 3; i++) {
+            if (board[i].every(cell => cell === player)) {
+                return true;
+            }
+        }
+
+        // Vérifiez les colonnes
+        for (let j = 0; j < 3; j++) {
+            if (board.every(row => row[j] === player)) {
+                return true;
+            }
+        }
+
+        // Vérifiez les diagonales
+        if (board.every((row, index) => row[index] === player)) {
+            return true;
+        }
+        if (board.every((row, index) => row[2 - index] === player)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    function updateGameInfo() {
+        playerInfo.textContent = `Joueur 1: ${player1}`;
+        currentTurn.textContent = `Tour actuel: ${currentPlayer === 'P' ? player1 : 'Machine'}`;
+    }
+});
